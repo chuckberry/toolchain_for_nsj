@@ -1,0 +1,136 @@
+# This file contain generic utility functions 
+
+TO_RESTORE_PM_GOVERNOR=""
+TO_RESTORE_RT_RUNTIME=""
+
+function print_usage {
+
+cat - <<EOF
+
+Sistema di scipt
+
+EOF
+
+}
+
+function mount_debugfs {
+	local mount_path=`mount | grep debugfs | cut -d' ' -f 3`
+	if [ -z "$mount_path" ]; then
+		mount -t debugfs nodev "$DEBUGFS_PATH" || return 1
+	else
+		DEBUGFS_PATH=$mount_path
+		echo "already mounted at " $mount_path
+	fi
+}
+
+function clean_trace { 
+	if [ -f $TRACE_PATH/set_graph_function ]; then
+		echo > $TRACE_PATH/set_graph_function
+	fi
+
+	if [ -f $TRACE_PATH/set_ftrace_filter ]; then
+		echo > $TRACE_PATH/set_ftrace_filter
+	fi
+
+	echo "" > "$TRACE_PATH/trace"
+	echo nop > "$TRACE_PATH/current_tracer"
+	echo 7 > "$TRACE_PATH/buffer_size_kb"
+}
+
+# this function copy and compress trace file in 
+function dump_trace {
+	cat "$TRACE_PATH/trace" | gzip 
+	clean_trace
+}
+
+#enable all available cpus
+function enable_all_cpus {
+	for i in `seq 1 $(($NUM_CPUS - 1))`
+	do
+		#if CPU i is disabled
+		if [ $(cat /sys/devices/system/cpu/cpu${i}/online) -eq 0 ]; then
+			#enable it
+			echo "Enabling previous disabled CPU #$i"
+			echo 1 > /sys/devices/system/cpu/cpu${i}/online 2>/dev/null
+		else
+			echo "CPU #$i already enabled"
+		fi
+	done
+}
+
+#(in HT, #CPU >= NUM_CPUS / 2 are on same cores of the correspondent < NUM_CPUS /2)
+function disable_HT {
+	local start=$NUM_CPUS
+	let start/=2
+	for i in `seq $start $(($NUM_CPUS - 1))`
+	do
+		disable_cpu $i
+	done
+}
+
+function disable_pm_governor {
+
+	return 0;
+
+	if [ -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor -a \
+		$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors | grep performance | wc -l) -ne 0 ]; then
+		#get current governor to restore afterwards
+		TO_RESTORE_PM_GOVERNOR=`cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
+	fi
+
+	for i in `seq 0 $(($NUM_CPUS - 1))`
+	do	
+		if [ -f /sys/devices/system/cpu/cpu${i}/cpufreq/scaling_governor ]; then
+			echo "Set cpu #$i governor to performance"
+			echo performance > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+		fi
+	done
+}
+
+function restore_pm_governor {
+
+	return 0;
+
+	if [ -z "$TO_RESTORE_PM_GOVERNOR" ]; then
+		echo "You have to call disable_pm_governor first"
+		return 1
+	fi
+
+	for i in `seq 0 $(($NUM_CPUS - 1))`
+	do	
+		if [ -f /sys/devices/system/cpu/cpu${i}/cpufreq/scaling_governor ]; then
+			echo "Restoring cpu #$i governor to $TO_RESTORE_PM_GOVERNOR"
+			echo $TO_RESTORE_PM_GOVERNOR > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+		fi
+	done
+
+	TO_RESTORE_PM_GOVERNOR=""
+}
+
+function disable_rt_runtime {
+	TO_RESTORE_RT_RUNTIME=$(sysctl -n kernel.sched_rt_runtime_us)
+	echo "Disabling max runtime for RT tasks"
+	sysctl -q -w kernel.sched_rt_runtime_us=$(sysctl -n kernel.sched_rt_period_us)
+}
+
+function restore_rt_runtime {
+	if [ -z "$TO_RESTORE_RT_RUNTIME" ]; then
+		echo "You have to call disable_rt_runtime first"
+		return 1
+	fi
+	echo "Restoring max runtime for RT tasks to $TO_RESTORE_RT_RUNTIME"
+	sysctl -q -w kernel.sched_rt_runtime_us=$TO_RESTORE_RT_RUNTIME
+}
+
+function prepare_for_benchmark {
+	disable_pm_governor
+	disable_rt_runtime
+}
+
+function restore_from_benchmark {
+	restore_pm_governor
+	restore_rt_runtime
+}
+
+
+
