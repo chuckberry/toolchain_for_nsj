@@ -135,7 +135,6 @@ $1 ~ /^#/ {
 	if($6 != "|" && brack_on && $9 != "}"){
 		sum_lat+=$6;
 		#print "picked fun: " $9 " lat: " $6
-		fun_count++;
 	}
 
 
