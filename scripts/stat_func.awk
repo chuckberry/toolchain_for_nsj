@@ -38,16 +38,14 @@ BEGIN {
 	#used to track functions
 	brack_on = 0;
 	brack_count = 0;
+
+	# used for statistics
 	sum_lat = 0;
 	fun_lat = 0;
 	sum_all_latency = 0;	
 
 	i=0; #idx for stack of call
 	
-	#used for debug
-	ts = 0;
-	alert = 0;
-
 	print "#list of exec time of function call "
 }
 
@@ -84,18 +82,23 @@ $1 ~ /^#/ {
 }	
 
 {
-	if (alert)
-		exit;
-
 	# until now I have seen that function call is made 
 	# on col $7 and brackets is open at col $8	
 	# anyway check trace file
 
+	# if there is a not closed call of fun, stop to parse
+	if($7 == fun && $8 == "{" && brack_on){
+		sum_lat=0;
+		brack_on=0;
+		brack_count=0;
+	}
+
 	if($7 == fun && $8 == "{"){
 		brack_count++; #use to do a check on number of brackets
 		brack_on = 1;
-		#push function call
+		# push function call
 		stack_call[i]=$7;
+		# store funcgraph entry
 		i++; #increment stack pointer
 	}
 	
@@ -112,6 +115,12 @@ $1 ~ /^#/ {
 	# brackets opened, in this case function name should be
 	# col. $9 because in the same row is written also latency function
 	
+	if($9 == fun && brack_on){
+		sum_lat=0;
+		brack_on=0;
+		brack_count=0;
+	}
+
 	if($9 == fun){
 		print  $3 " " $6;
 		sum_all_latency+=$6
@@ -128,9 +137,9 @@ $1 ~ /^#/ {
 		}
 	}
 	
-	# your function could appear in trace file without 
-	# brackets opened, if brack_on you have to sum latency and
-	# subtract at fun's bracket closing
+	# in this case your fun call a small time function,
+	# you have to sum latency of this called function and
+	# subtract at your fun's bracket closing
 	
 	if($6 != "|" && brack_on && $9 != "}"){
 		sum_lat+=$6;
@@ -144,7 +153,6 @@ $1 ~ /^#/ {
 	if($9 == "}" && brack_on){
 		brack_count--;
 		i--; # decrement stack pointer
-		
 		if (stack_call[i] != fun) {
 			# measure latency of stack_call[i]
 			fun_lat = $6 - sum_lat;
@@ -169,7 +177,7 @@ $1 ~ /^#/ {
 					break;	
 				}		
 			}
-
+			
 			brack_on = 0;
 			sum_lat=0;
 		}	
@@ -177,16 +185,14 @@ $1 ~ /^#/ {
 		# if in stack remains function we want to track
 		# brackets must be closed
 		if (stack_call[i] == fun && brack_count != 0){
-			print "brackets for fun are not closed: " $1
-			alert = 1;
+			sum_lat=0;
+			brack_on=0;
+			brack_count=0;
 		}
 	}
 }
 
 END {
-	if (alert == 1)
-		exit
-
 	printf("#<EOF>call: %d\n",fun_count);
 	printf("#<EOF>time: %f\n",sum_all_latency);
 }
