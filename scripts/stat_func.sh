@@ -73,7 +73,6 @@ fi
 MONITOR="${MONITOR_FTRACE}_${DIM}KB"
 
 DATA_FILE="data_`uname -r`_${ID_BENCH}_KB${DIM}.txt"
-DATA_COMPRESSED="data_`uname -r`_${ID_BENCH}_KB${DIM}.gz"
 
 # Run benchmark
 chrt --fifo $PRIO_BENCH ${BENCH} | chrt --fifo $PRIO_MONITOR ${MONITOR} "$NAME_OF_BENCH_TRACED" 
@@ -120,8 +119,8 @@ done
 for k in 0 1 2 3; do
 	echo "scanning cpu $k ... "
 	cat $TRACE_PATH/trace | sed -e 's/;//g' | awk -v "idx=$k)" \
-			 '{if ($3 == idx || ($3 == "=>" && $1 == idx ) ) {print $0} }'  >> $DATA_FILE
-	echo "#finish cpu $k" >> $DATA_FILE
+			 '{if ($3 == idx || ($3 == "=>" && $1 == idx ) ) {print $0} }'  >> $DATA_FOLDER/$DATA_FILE
+	echo "#finish cpu $k" >> $DATA_FOLDER/$DATA_FILE
 	echo "done"
 done
 
@@ -207,7 +206,7 @@ for i in `seq $AR_SIZE`; do #size of array
 	HEADER_GLOBAL_LIST=""
 
 	echo "calculating stats for func ${AR_FUN[$i]}"
-	awk -v "fun=${AR_FUN[$i]}" -v "task_list=${FUNC_TASK_LIST}" -f $PATH_SCRIPT/stat_func.awk $DATA_FILE >> $DATA_FOLDER/$SAMPLES_TIME
+	awk -v "fun=${AR_FUN[$i]}" -v "task_list=${FUNC_TASK_LIST}" -f $PATH_SCRIPT/stat_func.awk $DATA_FOLDER/$DATA_FILE >> $DATA_FOLDER/$SAMPLES_TIME
 	echo "*************** Try $ID_BENCH **********************" >> $DATA_FOLDER/$STATS_FILE_CPU 
 	cat $DATA_FOLDER/$SAMPLES_TIME | grep "#" >> $DATA_FOLDER/$STATS_FILE_CPU	
 
@@ -266,11 +265,19 @@ for i in `seq $AR_SIZE`; do #size of array
 			"count = $NR_FUNC_CALL time = $ALL_LATENCIES ${TITLE_AVG}_`uname -r`"  "Time (us)" "nr_of_call"
 	traceplotgif.sh "$DATA_FOLDER/$PERC_FILE" "$PNG_FOLDER/$IMG_PERC_FILE" \
 			"fdr: (us) Avg = $AVG_FUN Var = $VAR_FUN ${AR_FUN[$i]}_`uname -r`" "Percentage" "Time (ns)" 
+
+	gzip $DATA_FOLDER/$SAMPLES_TIME
+	gzip $DATA_FOLDER/$PERC_FILE
+	for k in 0 1 2 3; do
+		SAMPLE_TIME_CPU="${SAMPLES_TIME_PREFIX_CPU}_$k.txt"
+		PERC_FILE_CPU="${PERC_FILE_PREFIX_CPU}_$k.txt"
+		gzip $DATA_FOLDER/$SAMPLE_TIME_CPU
+		gzip $DATA_FOLDER/$PERC_FILE_CPU
+	done
 done
 
 # compress data file
-cat $DATA_FILE | gzip > $DATA_FOLDER/$DATA_COMPRESSED
-rm $DATA_FILE
+gzip $DATA_FOLDER/$DATA_FILE
 rm hist
 rm $FILTER_SAMPLES_TIME
 
