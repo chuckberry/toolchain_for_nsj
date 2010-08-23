@@ -34,12 +34,12 @@ if [ ! -d $IN_PATH ]; then
 	exit
 fi
 
-if [ -d $OUT_PATH ]; then
-	echo "out dir exist change name"
-	exit
+if [ ! -f ${IN_PATH}/${IN_FILE} ]; then
+	echo "$IN_FILE not exist"
+	exit 1;
 fi
 
-mkdir $OUT_PATH
+mkdir -p $OUT_PATH
 
 # trace file is now compressed
 echo -n "Decompressing file ..."
@@ -51,6 +51,10 @@ TEMP_FILE=`basename $IN_FILE .gz`
 for i in $TEMP_FILE; do
 	echo -n "Converting sched_switch tracer: $i files  ..." 
 	#tracer is function tracer
+	if [ ! -f $IN_PATH/$i ]; then
+		echo "$IN_PATH/$i not exist"
+		exit 1;
+	fi
 	trace2vcd  "$IN_PATH/$i" "$OUT_PATH/${SUFFIX_VCD}_`basename $i .txt`.vcd"
 	echo "done"
 done
