@@ -21,8 +21,6 @@ legendx=right
 legendy=center
 =norotate
 font=Times
-xlabel=Dimension
-=table
 EOF
 
 }
@@ -141,8 +139,10 @@ for i in `seq $AR_SIZE`; do
 
 	echo "title=${AR_TITLE[$i]}" >> $GRAPH_FOLDER/$GRAPH_FILE
 	echo "ylabel=${AR_YLAB[$i]}" >> $GRAPH_FOLDER/$GRAPH_FILE
+	echo "xlabel=${AR_XLAB[$i]}" >> $GRAPH_FOLDER/$GRAPH_FILE
 
 	print_header $GRAPH_FOLDER/$GRAPH_FILE
+	echo "=table" >> $GRAPH_FOLDER/$GRAPH_FILE
 
 	# Print average values
 	for d in $ROW_LIST; do 

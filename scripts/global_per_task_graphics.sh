@@ -63,7 +63,7 @@ legendy=center
 =norotate
 font=Times
 =cluster$cluster
-xlabel=Dimension
+xlabel=Task
 =table
 EOF
 }

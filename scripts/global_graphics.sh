@@ -60,8 +60,6 @@ legendy=center
 =norotate
 font=Times
 =cluster$cluster
-xlabel=Dimension
-=table
 EOF
 }
 
@@ -99,8 +97,11 @@ GRAPH_FILE="${PREFIX}_`date --rfc-3339='date'`.plot"
 echo > $GRAPH_FILE
 echo "title=$TITLE" >> $GRAPH_FILE
 echo "ylabel=$YLAB" >> $GRAPH_FILE
+echo "xlabel=$XLAB" >> $GRAPH_FILE
 
 print_header $GRAPH_FILE
+
+echo "=table" >> $GRAPH_FILE
 
 # Join average values contained in files that are indicated by $PLOT_FILE
 VALUE=""
