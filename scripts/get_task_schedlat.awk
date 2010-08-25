@@ -48,7 +48,7 @@ $NF == task && $0 ~ /==>/ {
 
 	exec_time=timestamp2-timestamp1
 	exec_time*=1000000
-	printf("%.0f\n", exec_time);
+	printf("%.0f %.06f\n", exec_time,timestamp2);
 	n++
 }
 

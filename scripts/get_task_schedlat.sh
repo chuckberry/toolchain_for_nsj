@@ -7,10 +7,6 @@ if [ x$INIT_SOURCE == "x" ]; then
 	exit 1;	
 fi
 
-if [ ! -f $INIT_SOURCE ]; then
-	echo "run init_env.sh to select what profile do you want"
-	exit 1;
-fi
 source $INIT_SOURCE
 
 awk -v "task=$1" -f $PATH_SCRIPT/get_task_schedlat.awk

@@ -57,7 +57,7 @@ $1 ~ task {
 
 	exec_time=timestamp2-timestamp1
 	exec_time*=1000000
-	print exec_time
+	print exec_time " " timestamp2
 	n++
 }
 
