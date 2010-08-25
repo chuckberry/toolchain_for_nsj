@@ -158,4 +158,7 @@ traceplotgif.sh "$DATA_FOLDER/$SAMPLES_TIME" "$PNG_FOLDER/$IMG_SAMPLES_TIME" "${
 traceplotgif.sh "$DATA_FOLDER/$PERC_FILE" "$PNG_FOLDER/$IMG_PERC_FILE"\
 		"fdr: (ns) Avg = $AVG_FUN Var = $VAR_FUN ${TITLE}_`uname -r`" "Percentage" "Time (ns)"
 
+gzip $DATA_FOLDER/$SAMPLES_TIME
+gzip $DATA_FOLDER/$PERC_FILE
+
 echo "done"
