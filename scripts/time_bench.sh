@@ -131,8 +131,8 @@ mv $MONITOR_OUT_TRACE $DATA_FOLDER/$SAMPLES_TIME
 
 # compute statistics 
 STATS=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLES_TIME" -n 1 -l -t "$TIME_UNIT"`
-AVG_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_TIME" -n 1 -a -t "$TIME_UNIT"`
-VAR_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_TIME" -n 1 -v -t "$TIME_UNIT"`
+AVG_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLES_TIME" -n 1 -a -t "$TIME_UNIT"`
+VAR_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLES_TIME" -n 1 -v -t "$TIME_UNIT"`
 
 # put STATS value in STATS_FILE tagged with TAG 
 # STATS will have this format:

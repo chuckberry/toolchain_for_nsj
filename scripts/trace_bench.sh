@@ -76,6 +76,17 @@ NAME_BENCH="${PREFIX_BENCH}_${ID_BENCH}"
 # --- produced files
 # contais statistics data
 STATS_FILE="${PREFIX_BENCH}_stats.txt"
+
+SAMPLES_TIME_PREFIX_TASK="${NAME_BENCH}_${DIM}_samples_time"
+IMG_SAMPLES_TIME_PREFIX_TASK="img_${NAME_BENCH}_${DIM}_samples_time"
+PERC_FILE_TIME_PREFIX_TASK="${NAME_BENCH}_${DIM}_perc"
+IMG_PERC_FILE_TIME_PREFIX_TASK="img_${NAME_BENCH}_${DIM}_perc"
+
+SAMPLES_SCHED_LAT_PREFIX_TASK="${NAME_BENCH}_${DIM}_samples_sched_lat"
+IMG_SAMPLES_SCHED_LAT_PREFIX_TASK="img_${NAME_BENCH}_${DIM}_samples_sched_lat"
+PERC_FILE_SCHED_LAT_PREFIX_TASK="${NAME_BENCH}_${DIM}_perc"
+IMG_PERC_FILE_SCHED_LAT_PREFIX_TASK="img_${NAME_BENCH}_${DIM}_perc"
+
 # trace file produced by sched_switch tracer
 TRACE_FILE="${NAME_BENCH}_${DIM}_trace_file.gz"
 TAG="<$NAME_BENCH><$DIM>"
@@ -183,19 +194,52 @@ dump_trace > "$DATA_FOLDER/$TRACE_FILE"
 
 for i in $TASK_LIST
 do
+	SAMPLE_TIME_TASK="${SAMPLES_TIME_PREFIX_TASK}_$i.txt"
+	PERC_FILE_TIME_TASK="${PERC_FILE_TIME_PREFIX_TASK}_$i.txt"
+	IMG_SAMPLE_TIME_TASK="${IMG_SAMPLES_TIME_PREFIX_TASK}_$i.png"
+	IMG_PERC_FILE_TIME_TASK="${IMG_PERC_FILE_TIME_PREFIX_TASK}_$i.png"
+	
+	SAMPLE_SCHED_LAT_TASK="${SAMPLES_SCHED_LAT_PREFIX_TASK}_$i.txt"
+	PERC_FILE_SCHED_LAT_TASK="${PERC_FILE_SCHED_LAT_PREFIX_TASK}_$i.txt"
+	IMG_SAMPLE_SCHED_LAT_TASK="${IMG_SAMPLES_SCHED_LAT_PREFIX_TASK}_$i.png"
+	IMG_PERC_FILE_SCHED_LAT_TASK="${IMG_PERC_FILE_SCHED_LAT_PREFIX_TASK}_$i.png"
+	
 	# compute avg exec time of each task and number of migration
-	zcat $DATA_FOLDER/$TRACE_FILE | sed -e '/^#/d' -e 's/: /:/g' | get_task_duration_migr.sh $i > temp_exec_stat
-	NR_MIGR=`cat temp_exec_stat | grep "migr" | awk '{print $NF}'` 
-	EXEC_TASK_STATS="Exec_time_stat:`calc_stat.sh -f "temp_exec_stat" -n 1 -l`"
+	zcat $DATA_FOLDER/$TRACE_FILE | sed -e '/^#/d' -e 's/: /:/g' | get_task_duration_migr.sh $i > $DATA_FOLDER/$SAMPLE_TIME_TASK
+	AVG_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_TIME_TASK" -n 1 -a`
+	VAR_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_TIME_TASK" -n 1 -v`
+	COUNT=`cat $DATA_FOLDER/$SAMPLE_TIME_TASK | grep -v "#" | wc -l`
+
+	generate_histogram.sh $DATA_FOLDER/$SAMPLE_TIME_TASK "us" > hist
+	generate_percentili.sh hist $COUNT > $DATA_FOLDER/$PERC_FILE_TIME_TASK
+
+	traceplotgif.sh "$DATA_FOLDER/$SAMPLE_TIME_TASK" "$PNG_FOLDER/$IMG_SAMPLE_TIME_TASK" \
+				"$i: Avg_Ex_time_`uname -r`"  "Time (us)" "nr_of_sample"
+	traceplotgif.sh "$DATA_FOLDER/$PERC_FILE_TIME_TASK" "$PNG_FOLDER/$IMG_PERC_FILE_TIME_TASK" \
+				"fdr of task: $i (us) Avg = $AVG_FUN Var = $VAR_FUN `uname -r`"  "Percentage" "Time (ns)"
 
 	# compute avg sched latency of each task
-	zcat $DATA_FOLDER/$TRACE_FILE | sed -e '/^#/d' -e 's/: /:/g' | get_task_schedlat.sh $i > temp_lat_stat
-	LAT_TASK_STATS="Sched_lat_stat:`calc_stat.sh -f "temp_lat_stat" -n 1 -l`"
+	zcat $DATA_FOLDER/$TRACE_FILE | sed -e '/^#/d' -e 's/: /:/g' | get_task_schedlat.sh $i > $DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK
+	
+	AVG_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK" -n 1 -a`
+	VAR_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK" -n 1 -v`
+	COUNT=`cat $DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK | grep -v "#" | wc -l`
 
+	generate_histogram.sh $DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK "us" > hist
+	generate_percentili.sh hist $COUNT > $DATA_FOLDER/$PERC_FILE_SCHED_LAT_TASK
+
+	traceplotgif.sh "$DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK" "$PNG_FOLDER/$IMG_SAMPLE_SCHED_LAT_TASK" \
+				"$i: Avg_sched_lat_`uname -r`"  "Time (us)" "nr_of_sample"
+	traceplotgif.sh "$DATA_FOLDER/$PERC_FILE_SCHED_LAT_TASK" "$PNG_FOLDER/$IMG_PERC_FILE_SCHED_LAT_TASK" \
+				"fdr of task: $i (us) Avg = $AVG_FUN Var = $VAR_FUN `uname -r`"  "Percentage" "Time (ns)"
+
+	# statistcs
+	NR_MIGR=`cat $DATA_FOLDER/$SAMPLE_TIME_TASK | grep "migr" | awk '{print $NF}'` 
+	EXEC_TASK_STATS="Exec_time_stat:`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_TIME_TASK" -n 1 -l`"
+	LAT_TASK_STATS="Sched_lat_stat:`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK" -n 1 -l`"
 	ALL_STATS="$EXEC_TASK_STATS migr = $NR_MIGR $LAT_TASK_STATS"
 	
 	echo "$TAG<$i>$ALL_STATS" >> $DATA_FOLDER/$STATS_FILE
+		
 done
 
-rm temp_lat_stat
-rm temp_exec_stat
