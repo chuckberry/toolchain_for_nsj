@@ -56,13 +56,18 @@ if [ ! -d $TA_LOG_PATH ]; then
 
 fi
 
+OK_START=`cat $START_BENCH`
+if [ x$OK_START != "x" ]; then
+	echo "clean toolchain before to run"
+	exit 1;
+fi
+
 pushd $TA_IMAGES_PATH >/dev/null
 
 # update list of kernel to test
 ./make_list.sh
 
 popd >/dev/null 2>&1
-
 
 ################################################################################
 #                       Don't touch the following lines                        #
@@ -299,6 +304,8 @@ else
 		done
 	fi
 
+	# signal that results directory it's not clean
+	echo 0 > $CLEAN_RESULTS
 	popd >/dev/null 2>&1 #I'm in $TA_BASE
 
 	echo "global graphics generated" >> $LOG_DATA

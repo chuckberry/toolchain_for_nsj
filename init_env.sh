@@ -137,4 +137,7 @@ sed -e 's/TA_CONFIGURED=.*/TA_CONFIGURED=1/g'\
  -e 's/SECTION_LIST=.*/SECTION_LIST="'"$SECTION_LIST"'"/g'\
  -e 's/CPUAFF_TEST=.*/CPUAFF_TEST="'"$CPUAFF_TEST"'"/g' > $TEST_INIT_FILE
 
+# check toolchain
+echo "check toolchain ..."
+./check_toolchain.sh 
 
