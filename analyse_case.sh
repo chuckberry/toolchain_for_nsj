@@ -6,6 +6,7 @@ cat - <<EOF
 From a png file find corresponding sample in vcd file
 data file must have first column with latency
 and second column with timestamps
+you must be where there are data files !! (folder data)
 
 $1 --> lower bound of nr_sample (put def for default value) 
 $2 --> upper bound of nr_sample (put def as above)
