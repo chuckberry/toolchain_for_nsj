@@ -67,6 +67,11 @@ pushd $TA_IMAGES_PATH >/dev/null
 
 popd >/dev/null 2>&1
 
+OK_START=`cat $START_BENCH`
+if [ x$OK_START != "x" ]; then
+	echo "clean toolchain before to run"
+	exit 1;
+fi
 
 ################################################################################
 #                       Don't touch the following lines                        #
