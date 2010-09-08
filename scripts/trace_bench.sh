@@ -79,13 +79,13 @@ STATS_FILE="${PREFIX_BENCH}_stats.txt"
 
 SAMPLES_TIME_PREFIX_TASK="${NAME_BENCH}_${DIM}_samples_time"
 IMG_SAMPLES_TIME_PREFIX_TASK="img_${NAME_BENCH}_${DIM}_samples_time"
-PERC_FILE_TIME_PREFIX_TASK="${NAME_BENCH}_${DIM}_perc"
-IMG_PERC_FILE_TIME_PREFIX_TASK="img_${NAME_BENCH}_${DIM}_perc"
+PERC_FILE_TIME_PREFIX_TASK="${NAME_BENCH}_${DIM}_perc_sample_time"
+IMG_PERC_FILE_TIME_PREFIX_TASK="img_${NAME_BENCH}_${DIM}_perc_sample_time"
 
 SAMPLES_SCHED_LAT_PREFIX_TASK="${NAME_BENCH}_${DIM}_samples_sched_lat"
 IMG_SAMPLES_SCHED_LAT_PREFIX_TASK="img_${NAME_BENCH}_${DIM}_samples_sched_lat"
-PERC_FILE_SCHED_LAT_PREFIX_TASK="${NAME_BENCH}_${DIM}_perc"
-IMG_PERC_FILE_SCHED_LAT_PREFIX_TASK="img_${NAME_BENCH}_${DIM}_perc"
+PERC_FILE_SCHED_LAT_PREFIX_TASK="${NAME_BENCH}_${DIM}_perc_sched_lat"
+IMG_PERC_FILE_SCHED_LAT_PREFIX_TASK="img_${NAME_BENCH}_${DIM}_perc_sched_lat"
 
 # trace file produced by sched_switch tracer
 TRACE_FILE="${NAME_BENCH}_${DIM}_trace_file.gz"
@@ -154,21 +154,21 @@ fi
 # read if GLOBAL_LIST has already an entry for each graphic
 # that this file want to generate, because an entry in GLOBAL_LIST
 # correspond to a "global" graphic
-HEADER_GLOBAL_LIST=`cat $TA_RESULTS_PATH/$GLOBAL_LIST | grep ${PREF_AVG}_$PREFIX`
+HEADER_GLOBAL_LIST=`cat $TA_RESULTS_PATH/$GLOBAL_LIST | grep ${TITLE_AVG}`
 if [ x"$HEADER_GLOBAL_LIST" == "x" ]; then
-	echo "${PREF_AVG}_$PREFIX#$TITLE_AVG#$XLAB_AVG#$YLAB_AVG" >> $TA_RESULTS_PATH/$GLOBAL_LIST
+	echo "${PREF_AVG}_${PREFIX}#$TITLE_AVG#$XLAB_AVG#$YLAB_AVG" >> $TA_RESULTS_PATH/$GLOBAL_LIST
 fi
 HEADER_GLOBAL_LIST=""
 
-HEADER_GLOBAL_LIST=`cat $TA_RESULTS_PATH/$GLOBAL_LIST | grep ${PREF_SCHED}_$PREFIX`
+HEADER_GLOBAL_LIST=`cat $TA_RESULTS_PATH/$GLOBAL_LIST | grep ${TITLE_SCHED}`
 if [ x"$HEADER_GLOBAL_LIST" == "x" ]; then
-	echo "${PREF_SCHED}_$PREFIX#$TITLE_SCHED#$XLAB_SCHED#$YLAB_SCHED" >> $TA_RESULTS_PATH/$GLOBAL_LIST
+	echo "${PREF_SCHED}_${PREFIX}#$TITLE_SCHED#$XLAB_SCHED#$YLAB_SCHED" >> $TA_RESULTS_PATH/$GLOBAL_LIST
 fi
 HEADER_GLOBAL_LIST=""
 
-HEADER_GLOBAL_LIST=`cat $TA_RESULTS_PATH/$GLOBAL_LIST | grep ${PREF_MIGR}_$PREFIX`
+HEADER_GLOBAL_LIST=`cat $TA_RESULTS_PATH/$GLOBAL_LIST | grep ${TITLE_MIG}`
 if [ x"$HEADER_GLOBAL_LIST" == "x" ]; then
-	echo "${PREF_MIGR}_$PREFIX#$TITLE_MIG#$XLAB_MIG#$YLAB_MIG" >> $TA_RESULTS_PATH/$GLOBAL_LIST
+	echo "${PREF_MIGR}_${PREFIX}#$TITLE_MIG#$XLAB_MIG#$YLAB_MIG" >> $TA_RESULTS_PATH/$GLOBAL_LIST
 fi
 
 # Run benchmark and monitor to produce Average Exec. time of samples
@@ -208,9 +208,9 @@ do
 	zcat $DATA_FOLDER/$TRACE_FILE | sed -e '/^#/d' -e 's/: /:/g' | get_task_duration_migr.sh $i > $DATA_FOLDER/$SAMPLE_TIME_TASK
 	AVG_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_TIME_TASK" -n 1 -a`
 	VAR_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_TIME_TASK" -n 1 -v`
-	COUNT=`cat $DATA_FOLDER/$SAMPLE_TIME_TASK | grep -v "#" | wc -l`
 
 	generate_histogram.sh $DATA_FOLDER/$SAMPLE_TIME_TASK "us" > hist
+	COUNT=`cat hist | grep -v "#" | awk '{print $NF}' | (sed -e 's/^/x+=/'; echo "x") | bc`
 	generate_percentili.sh hist $COUNT > $DATA_FOLDER/$PERC_FILE_TIME_TASK
 
 	traceplotgif.sh "$DATA_FOLDER/$SAMPLE_TIME_TASK" "$PNG_FOLDER/$IMG_SAMPLE_TIME_TASK" \
@@ -223,9 +223,9 @@ do
 	
 	AVG_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK" -n 1 -a`
 	VAR_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK" -n 1 -v`
-	COUNT=`cat $DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK | grep -v "#" | wc -l`
 
 	generate_histogram.sh $DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK "us" > hist
+	COUNT=`cat hist | grep -v "#" | awk '{print $NF}' | (sed -e 's/^/x+=/'; echo "x") | bc`
 	generate_percentili.sh hist $COUNT > $DATA_FOLDER/$PERC_FILE_SCHED_LAT_TASK
 
 	traceplotgif.sh "$DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK" "$PNG_FOLDER/$IMG_SAMPLE_SCHED_LAT_TASK" \

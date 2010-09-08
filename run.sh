@@ -290,12 +290,14 @@ else
 		done
 	fi
 
-	PER_TASK_LIST=`cat $GLOBAL_LIST | grep $PER_TASK_TAG`
-	if [ x"$PER_TASK_LIST" != "x" ]; then
-		for i in $PER_TASK_LIST; do
-			global_per_task_graphics.sh -e "$i" -d "$DIM_LIST" -t "$TASK_LIST"
-		done
-	fi
+	for d in $DIM_LIST; do 
+		PER_TASK_LIST=`cat $GLOBAL_LIST | grep $PER_TASK_TAG | grep $d`
+		if [ x"$PER_TASK_LIST" != "x" ]; then
+			for i in $PER_TASK_LIST; do
+				global_per_task_graphics.sh -e "$i" -d "$d" -t "$TASK_LIST"
+			done
+		fi
+	done
 
 	PER_FUNC_LIST=`cat $GLOBAL_LIST | grep $PER_FUNC_TAG`
 	if [ x"$PER_FUNC_LIST" != "x" ]; then
