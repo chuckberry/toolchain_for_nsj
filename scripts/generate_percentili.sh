@@ -19,4 +19,6 @@ source $INIT_SOURCE
 
 ##################   don't touch here  #####################
 
-awk -v "nr_sample=$2" -f $PATH_SCRIPT/generate_percentili.awk "$1"
+if [ $2 != 0 ]; then
+	awk -v "nr_sample=$2" -f $PATH_SCRIPT/generate_percentili.awk "$1"
+fi

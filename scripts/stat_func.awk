@@ -69,6 +69,8 @@ $1 ~ /^#/ {
 	printf("#<c%s>call: %d\n",cpu,fun_count-old_fun_count);
         for(j=0; j<nr_task; j++) {
 		printf("#<c%s>%s: nr: %d %: %f\n",cpu,ar_task[j+1],task_frequency[j],task_frequency[j]/sum_task*100);
+	} else {
+		printf("#<c%s>%s: nr: 0 %: 0\n",cpu,ar_task[j+1]);
 	}
 
 	# reset statistics
