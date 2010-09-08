@@ -44,11 +44,14 @@ case "$1" in
 		echo "experimental profile selected"
 		DIM_LIST="2 16"
 		NR_TRY_PERFORMANCE_TEST="5"
-		TA_MAKE_PERFORMANCE_TEST="1"
 		TASK_LIST="wave0 wave1 wave2 wave3 mixer0 mixer1 mixer2"
 		NUM_REPEAT_PERF="1"
-		FUNC_LIST="cpupri_find()"
+		TA_MAKE_PERFORMANCE_TEST="1"
 		TA_MAKE_FUNC_TEST="0"
+		FUNC_LIST="task_woken_rt() pull_rt_task() push_rt_task()"
+		FUNC_TASK_LIST="wave0 wave1 wave2 wave3 mixer0 mixer1 mixer2 monitor"
+		DIM_FUNC_LIST="16"
+		NR_TRY_FUNC_TEST="10"
 		;;
 	performance)
 		echo "performance profile selected"
@@ -113,6 +116,12 @@ case "$1" in
 esac
 
 TEST_INIT_FILE="test_init.env"
+# configuring section list
+echo "configuring section list ..."
+TEMP_LIST=`ls -l images | grep img | awk -F'_' '{print $NF}' | sed -e 's/\.img//g'`
+# tricky to remove \n character
+SECTION_LIST=`echo $TEMP_LIST` 
+ 
 
 cat init.env | \
 sed -e 's/TA_CONFIGURED=.*/TA_CONFIGURED=1/g'\
@@ -126,15 +135,9 @@ sed -e 's/TA_CONFIGURED=.*/TA_CONFIGURED=1/g'\
  -e 's/DIM_FUNC_LIST=.*/DIM_FUNC_LIST="'"$DIM_FUNC_LIST"'"/g'\
  -e 's/NR_TRY_FUNC_TEST=.*/NR_TRY_FUNC_TEST="'"$NR_TRY_FUNC_TEST"'"/g'\
  -e 's/TA_MAKE_FUNC_TEST=.*/TA_MAKE_FUNC_TEST="'"$TA_MAKE_FUNC_TEST"'"/g'\
+ -e 's/SECTION_LIST=.*/SECTION_LIST="'"$SECTION_LIST"'"/g'\
  -e 's/CPUAFF_TEST=.*/CPUAFF_TEST="'"$CPUAFF_TEST"'"/g' > $TEST_INIT_FILE
 
 # check toolchain
 echo "check toolchain ..."
 ./check_toolchain.sh 
-
-# configuring section list
-echo "configuring section list ..."
-TEMP_LIST=`ls -l images | grep img | awk -F'_' '{print $NF}' | sed -e 's/\.img//g'`
-# tricky to remove \n character
-SECTION_LIST=`echo $TEMP_LIST` 
-cat init.env | sed -e 's/SECTION_LIST=.*/SECTION_LIST="'"$SECTION_LIST"'"/g' > $TEST_INIT_FILE
