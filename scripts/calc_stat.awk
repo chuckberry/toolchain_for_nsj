@@ -5,6 +5,7 @@
 
 BEGIN{
 	var = 0;
+	unc = 0;
 	avg = 0;
 	min = 0;
 	max = 0;
@@ -42,11 +43,13 @@ $1 !~ /^#/ {
 END{
 	if (nr_sample > 0)
 		avg = (sum/nr_sample);
-	if (nr_sample > 1)
-		var = (nr_sample/(nr_sample-1))*((sum2/nr_sample) - avg*avg); 
+	if (nr_sample > 1) {
+		var = (nr_sample/(nr_sample-1))*((sum2/nr_sample) - avg*avg);	
+		unc = (sqrt(var/nr_sample));
+	}
 
 	if (print_col == "all") {
-		printf("Avg = %lf Var = %lf Min = %lf Max = %lf\n",avg,var,min,max);
+		printf("Avg = %lf Var = %lf Min = %lf Max = %lf Unc = %lf\n",avg,var,min,max,unc);
 	}
  
 	if (print_col == "avg") {
@@ -55,6 +58,10 @@ END{
 
 	if (print_col == "var") {
 		print var
+	}
+
+	if (print_col == "unc") {
+		print unc 
 	}
 
 	if (print_col == "min") {

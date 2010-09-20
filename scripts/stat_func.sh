@@ -180,7 +180,7 @@ for i in `seq $AR_SIZE`; do #size of array
 		# index of column that contains average values read by local_graphics.sh
 		echo "#${AVG_COL_TAG}${AVG_COL}" >> $DATA_FOLDER/$STATS_FILE
 		# index of column that contains variance values read by local_graphics.sh
-		echo "#${VAR_COL_TAG}${VAR_COL}" >> $DATA_FOLDER/$STATS_FILE
+		echo "#${VAR_COL_TAG}${UNC_COL}" >> $DATA_FOLDER/$STATS_FILE
 
 		echo "#${TITLE_TAG}${TITLE_COUNT}" >> $DATA_FOLDER/$STATS_FILE
 		echo "#${XLAB_TAG}${XLAB_COUNT}" >> $DATA_FOLDER/$STATS_FILE
@@ -223,7 +223,7 @@ for i in `seq $AR_SIZE`; do #size of array
 
 		echo "$SAMPLES" | grep -v "#" | grep "$k)" | sed -e 's/'$k')//g' >> $DATA_FOLDER/$SAMPLE_TIME_CPU
 		AVG_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_TIME_CPU" -n 1 -a`
-		VAR_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_TIME_CPU" -n 1 -v`
+		VAR_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_TIME_CPU" -n 1 -u`
 		COUNT=`echo "$SAMPLES" | grep "<c$k>call" | awk '{print $NF}'`
 
 		generate_histogram.sh $DATA_FOLDER/$SAMPLE_TIME_CPU "us" > hist
@@ -253,7 +253,8 @@ for i in `seq $AR_SIZE`; do #size of array
 	echo "<$DIM>$STATS" >> $DATA_FOLDER/$STATS_FILE
 
 	AVG_FUN="`calc_stat.sh -f "$DATA_FOLDER/$SAMPLES_TIME" -n 2 -a`"
-	VAR_FUN="`calc_stat.sh -f "$DATA_FOLDER/$SAMPLES_TIME" -n 2 -v`"
+	# compute an uncertainty
+	VAR_FUN="`calc_stat.sh -f "$DATA_FOLDER/$SAMPLES_TIME" -n 2 -u`"
 
 	FILTER_SAMPLES_TIME="temp"
 	cat $DATA_FOLDER/$SAMPLES_TIME | grep -v "#" | awk '{print $NF}' > $FILTER_SAMPLES_TIME

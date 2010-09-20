@@ -141,7 +141,7 @@ if [ x"$HEADER" == "x" ]; then
 	echo "#${YLAB_TAG}$YLAB_SCHED" >> $DATA_FOLDER/$STATS_FILE
 	echo "#${PREFIX_PLOT_TAG}${PREFIX_BENCH_SCHED}" >> $DATA_FOLDER/$STATS_FILE
 	echo "#${AVG_COL_TAG}${AVG_SCHED_COL}" >> $DATA_FOLDER/$STATS_FILE
-	echo "#${VAR_COL_TAG}${VAR_SCHED_COL}" >> $DATA_FOLDER/$STATS_FILE
+	echo "#${VAR_COL_TAG}${UNC_SCHED_COL}" >> $DATA_FOLDER/$STATS_FILE
 	
 	echo "#${TITLE_TAG}${TITLE_MIG}" >> $DATA_FOLDER/$STATS_FILE
 	echo "#${XLAB_TAG}${XLAB_MIG}" >> $DATA_FOLDER/$STATS_FILE
@@ -222,7 +222,8 @@ do
 	zcat $DATA_FOLDER/$TRACE_FILE | sed -e '/^#/d' -e 's/: /:/g' | get_task_schedlat.sh $i > $DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK
 	
 	AVG_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK" -n 1 -a`
-	VAR_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK" -n 1 -v`
+	# compute uncertainty
+	VAR_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK" -n 1 -u`
 
 	generate_histogram.sh $DATA_FOLDER/$SAMPLE_SCHED_LAT_TASK "us" > hist
 	COUNT=`cat hist | grep -v "#" | awk '{print $NF}' | (sed -e 's/^/x+=/'; echo "x") | bc`

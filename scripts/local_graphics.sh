@@ -179,7 +179,7 @@ for i in `seq $AR_SIZE`; do
 		if [ ${AR_AVG_COLS[$i]} != ${AR_VAR_COLS[$i]} ]; then
 			VAR=`calc_stat.sh -f "temp_stat" -a -n 1 `
 		else
-			VAR=`calc_stat.sh -f "temp_stat" -v -n 1 ` #same columns compute variance
+			VAR=`calc_stat.sh -f "temp_stat" -u -n 1 ` #same columns compute uncertainty
 		fi
 		echo "$VAR" >> $GRAPH_FOLDER/$GRAPH_FILE
 	done		

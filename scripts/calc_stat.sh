@@ -35,6 +35,8 @@ Input Parameters:
 	return only average
 -v 
 	return only variance
+-u
+	return only uncertainty
 -M 
 	return only max
 -m 
@@ -51,7 +53,7 @@ EOF
 
 }
 
-while getopts "hlavMmf:n:t:" optionName; do
+while getopts "hlavuMmf:n:t:" optionName; do
 
 	case "$optionName" in
 		h) 
@@ -66,6 +68,9 @@ while getopts "hlavMmf:n:t:" optionName; do
 			;;
 		v)
 			PRINT_COL="var"
+			;;
+		u)
+			PRINT_COL="unc"
 			;;
 		M)
 			PRINT_COL="min"
