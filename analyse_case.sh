@@ -78,7 +78,6 @@ if [ ! -d $VCD_FOLDER ]; then
 else 
 	echo "vcd already generated"
 fi
-
 echo "******* Find sample *********"
 # now there is vcd file and uncompressed trace file
 # enter where there are trace file
@@ -109,6 +108,10 @@ TS=`awk -v "low_sam=$LOW_SAM" -v "up_sam=$UP_SAM" -v "low_lat=$LOW_LAT" -v "up_l
 		}
 	}
 ' $DATA_FILE | awk '{print $2}'` 
+
+echo "ts are: "
+echo "$TS"
+echo "---------"
 
 for i in $TS; do
 	ts2gtkw.sh $TRACE_FILE $i

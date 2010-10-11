@@ -84,6 +84,20 @@ TIME_UNIT=""
 STATS_FILE="${PREFIX_BENCH}_stats.txt"
 TAG="<$NAME_BENCH><$DIM>"
 
+# --- header for graphics 
+PREF_PERC="perc"
+PREF_ACC="acc"
+
+TITLE_PERC="Percentage_L1_load_misses"
+XLAB_PERC="KB"
+YLAB_PERC="%"
+PREFIX_BENCH_PERC="${PREF_PERC}_${PREFIX_BENCH}"
+
+TITLE_ACC="Number_of_L1_load_access"
+XLAB_ACC="KB"
+YLAB_ACC="nr_access"
+PREFIX_BENCH_ACC="${PREF_ACC}_${PREFIX_BENCH}"
+
 touch $DATA_FOLDER/$STATS_FILE
 # parameters for "local" graphics construction
 HEADER=`cat $DATA_FOLDER/$STATS_FILE | grep "$TITLE_TAG"`
@@ -92,31 +106,46 @@ HEADER=`cat $DATA_FOLDER/$STATS_FILE | grep "$TITLE_TAG"`
 if [ x$HEADER == "x" ]; then
 	
 	# header read from local_graphics.sh to build graphic
-	TITLE="Percentage_load_misses"
-	XLAB="KB"
-	YLAB="%"	
 
 	# graphic's title
-	echo "#${TITLE_TAG}$TITLE" >> $DATA_FOLDER/$STATS_FILE
+	echo "#${TITLE_TAG}$TITLE_PERC" >> $DATA_FOLDER/$STATS_FILE
 	# label of x axis
-	echo "#${XLAB_TAG}$XLAB" >> $DATA_FOLDER/$STATS_FILE
+	echo "#${XLAB_TAG}$XLAB_PERC" >> $DATA_FOLDER/$STATS_FILE
 	# label of y axis
-	echo "#${YLAB_TAG}$YLAB" >> $DATA_FOLDER/$STATS_FILE
+	echo "#${YLAB_TAG}$YLAB_PERC" >> $DATA_FOLDER/$STATS_FILE
 	# prefix to use to give a name at "local" graphic
-	echo "#${PREFIX_PLOT_TAG}${PREFIX_BENCH}" >> $DATA_FOLDER/$STATS_FILE
+	echo "#${PREFIX_PLOT_TAG}${PREFIX_BENCH_PERC}" >> $DATA_FOLDER/$STATS_FILE
 	# index of column that contains average values read by local_graphics.sh
 	echo "#${AVG_COL_TAG}${AVG_COL}" >> $DATA_FOLDER/$STATS_FILE
 	# index of column that contains variance values read by local_graphics.sh
-	echo "#${VAR_COL_TAG}${VAR_COL}" >> $DATA_FOLDER/$STATS_FILE
+	echo "#${VAR_COL_TAG}${UNC_COL}" >> $DATA_FOLDER/$STATS_FILE
+
+
+	# header read from local_graphics.sh to build graphic
+
+	# graphic's title
+	echo "#${TITLE_TAG}$TITLE_ACC" >> $DATA_FOLDER/$STATS_FILE
+	echo "#${XLAB_TAG}$XLAB_ACC" >> $DATA_FOLDER/$STATS_FILE
+	echo "#${YLAB_TAG}$YLAB_ACC" >> $DATA_FOLDER/$STATS_FILE
+	echo "#${PREFIX_PLOT_TAG}${PREFIX_BENCH_ACC}" >> $DATA_FOLDER/$STATS_FILE
+	echo "#${AVG_COL_TAG}${AVG_ACC_COL}" >> $DATA_FOLDER/$STATS_FILE
+	echo "#${VAR_COL_TAG}${UNC_ACC_COL}" >> $DATA_FOLDER/$STATS_FILE
 fi
 
 # read if GLOBAL_LIST has already $PREFIX entry
 # because an entry in GLOBAL_LIST correspond to a 
 # "global" graphic 
-HEADER_GLOBAL_LIST=`cat $TA_RESULTS_PATH/$GLOBAL_LIST | grep $PREFIX`
+HEADER_GLOBAL_LIST=`cat $TA_RESULTS_PATH/$GLOBAL_LIST | grep $TITLE_PERC`
 if [ x$HEADER_GLOBAL_LIST == "x" ]; then
-	echo "$PREFIX#$TITLE#$XLAB#$YLAB" >> $TA_RESULTS_PATH/$GLOBAL_LIST
+	echo "${PREF_PERC}_${PREFIX}#$TITLE_PERC#$XLAB_PERC#$YLAB_PERC" >> $TA_RESULTS_PATH/$GLOBAL_LIST
 fi
+HEADER_GLOBAL_LIST=
+
+HEADER_GLOBAL_LIST=`cat $TA_RESULTS_PATH/$GLOBAL_LIST | grep $TITLE_ACC`
+if [ x$HEADER_GLOBAL_LIST == "x" ]; then
+	echo "${PREF_ACC}_${PREFIX}#$TITLE_ACC#$XLAB_ACC#$YLAB_ACC" >> $TA_RESULTS_PATH/$GLOBAL_LIST
+fi
+HEADER_GLOBAL_LIST=
 
 # run benchmark with perf in order to read L1 load
 # cache miss 
@@ -148,7 +177,9 @@ cat $PERF_FILE.* | grep $LOAD_EVENT | \
 # cache_miss_rate.txt contains NUM_REPEAT_PERF 
 # percentages of load misses, now compute average
 # and variance of this list of value
-CACHE_MISS=`calc_stat.sh -f "cache_miss_rate.txt" -n 1 -l -t "$TIME_UNIT"`
+CACHE_MISS="Percent_miss:`calc_stat.sh -f "cache_miss_rate.txt" -n 1 -l -t "$TIME_UNIT"`"
+cat $PERF_FILE.* | grep $LOAD_REF | awk '{print $1}' > temp_access.txt
+CACHE_ACCESS="Access_cache:`calc_stat.sh -f "temp_access.txt" -n 1 -l -t "$TIME_UNIT"`"
 
 # put CACHE_MISS value in STATS_FILE tagged with TAG 
 # CACHE_MISS will have this format:
@@ -156,14 +187,18 @@ CACHE_MISS=`calc_stat.sh -f "cache_miss_rate.txt" -n 1 -l -t "$TIME_UNIT"`
 # Average = %lf Var = %lf Min = %lf Max = %lf
 # Where:
 # -> Average = mean of values contained in cache_miss_rate.txt
-# -> Variance = variance of values ...	 
+# -> Variance = variance of values ...
 # -> Max = max of values ...
 # -> Min = min of values ...
 
-echo "${TAG}$CACHE_MISS"  >> $DATA_FOLDER/$STATS_FILE
+ALL_STATS="$CACHE_MISS $CACHE_ACCESS"
+echo "${TAG}$ALL_STATS"  >> $DATA_FOLDER/$STATS_FILE
 
-# remove temporary files
-rm cache_miss_rate.txt 
-rm $PERF_FILE.*
+CACHE_MISS_DATA="${NAME_BENCH}_$DIM"
+mkdir $DATA_FOLDER/$CACHE_MISS_DATA
+
+mv cache_miss_rate.txt $DATA_FOLDER/$CACHE_MISS_DATA 
+mv $PERF_FILE.* $DATA_FOLDER/$CACHE_MISS_DATA
+
 echo "done"
 

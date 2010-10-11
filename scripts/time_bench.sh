@@ -133,7 +133,6 @@ mv $MONITOR_OUT_TRACE $DATA_FOLDER/$SAMPLES_TIME
 STATS=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLES_TIME" -n 1 -l -t "$TIME_UNIT"`
 AVG_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLES_TIME" -n 1 -a -t "$TIME_UNIT"`
 VAR_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLES_TIME" -n 1 -v -t "$TIME_UNIT"`
-
 # put STATS value in STATS_FILE tagged with TAG 
 # STATS will have this format:
 # 
@@ -147,18 +146,19 @@ echo "$TAG$STATS" >> $DATA_FOLDER/$STATS_FILE
 
 echo -n "generating graphics..."
 
-generate_histogram.sh $DATA_FOLDER/$SAMPLES_TIME > hist 
-generate_percentili.sh hist $NR_SAMPLE > $DATA_FOLDER/$PERC_FILE
-rm hist
+#generate_histogram.sh $DATA_FOLDER/$SAMPLES_TIME > hist 
+#generate_percentili.sh hist $NR_SAMPLE > $DATA_FOLDER/$PERC_FILE
+#rm hist
+#
+##image of production times of samples
+#traceplotgif.sh "$DATA_FOLDER/$SAMPLES_TIME" "$PNG_FOLDER/$IMG_SAMPLES_TIME" "${TITLE}_`uname -r`" "Time (ns)" "nr_of_sample"
+#
+##image of cumulative distribution of production time of each sample
+#traceplotgif.sh "$DATA_FOLDER/$PERC_FILE" "$PNG_FOLDER/$IMG_PERC_FILE"\
+#		"fdr: (ns) Avg = $AVG_FUN Var = $VAR_FUN ${TITLE}_`uname -r`" "Percentage" "Time (ns)"
 
-#image of production times of samples
-traceplotgif.sh "$DATA_FOLDER/$SAMPLES_TIME" "$PNG_FOLDER/$IMG_SAMPLES_TIME" "${TITLE}_`uname -r`" "Time (ns)" "nr_of_sample"
-
-#image of cumulative distribution of production time of each sample
-traceplotgif.sh "$DATA_FOLDER/$PERC_FILE" "$PNG_FOLDER/$IMG_PERC_FILE"\
-		"fdr: (ns) Avg = $AVG_FUN Var = $VAR_FUN ${TITLE}_`uname -r`" "Percentage" "Time (ns)"
-
-gzip $DATA_FOLDER/$SAMPLES_TIME
-gzip $DATA_FOLDER/$PERC_FILE
+rm $DATA_FOLDER/$SAMPLES_TIME
+#gzip $DATA_FOLDER/$SAMPLES_TIME
+#gzip $DATA_FOLDER/$PERC_FILE
 
 echo "done"

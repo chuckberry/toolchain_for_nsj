@@ -42,13 +42,13 @@ case "$1" in
 		;;
 	experimental)
 		echo "experimental profile selected"
-		DIM_LIST="2 16"
-		NR_TRY_PERFORMANCE_TEST="2"
+		DIM_LIST="16"
+		NR_TRY_PERFORMANCE_TEST="3"
 		TASK_LIST="wave0 wave1 wave2 wave3 mixer0 mixer1 mixer2"
-		NUM_REPEAT_PERF="1"
+		NUM_REPEAT_PERF="5"
 		TA_MAKE_PERFORMANCE_TEST="1"
-		TA_MAKE_FUNC_TEST="1"
-		FUNC_LIST="push_rt_task()"
+		TA_MAKE_FUNC_TEST="0"
+		FUNC_LIST="push_rt_task() pull_rt_task()"
 		FUNC_TASK_LIST="wave0 wave1 wave2 wave3 mixer0 mixer1 mixer2 monitor"
 		DIM_FUNC_LIST="2 16"
 		NR_TRY_FUNC_TEST="2"
@@ -61,6 +61,7 @@ case "$1" in
 		TASK_LIST="wave0 wave1 wave2 wave3 mixer0 mixer1 mixer2"
 		NUM_REPEAT_PERF="10"
 		TA_MAKE_FUNC_TEST="0"
+		SECTION_LIST="vanilla exper1 exper2 exper3 exper4"
 		;;
 	function)	
 		echo "function profile selected"
@@ -116,7 +117,12 @@ case "$1" in
 esac
 
 TEST_INIT_FILE="test_init.env"
-
+# configuring section list
+echo "configuring section list ..."
+TEMP_LIST=`ls -l images | grep img | awk -F'_' '{print $NF}' | sed -e 's/\.img//g'`
+# tricky to remove \n character
+SECTION_LIST=`echo $TEMP_LIST` 
+ 
 
 cat init.env | \
 sed -e 's/TA_CONFIGURED=.*/TA_CONFIGURED=1/g'\
@@ -130,6 +136,7 @@ sed -e 's/TA_CONFIGURED=.*/TA_CONFIGURED=1/g'\
  -e 's/DIM_FUNC_LIST=.*/DIM_FUNC_LIST="'"$DIM_FUNC_LIST"'"/g'\
  -e 's/NR_TRY_FUNC_TEST=.*/NR_TRY_FUNC_TEST="'"$NR_TRY_FUNC_TEST"'"/g'\
  -e 's/TA_MAKE_FUNC_TEST=.*/TA_MAKE_FUNC_TEST="'"$TA_MAKE_FUNC_TEST"'"/g'\
+ -e 's/SECTION_LIST=.*/SECTION_LIST="'"$SECTION_LIST"'"/g'\
  -e 's/CPUAFF_TEST=.*/CPUAFF_TEST="'"$CPUAFF_TEST"'"/g' > $TEST_INIT_FILE
 
 # check toolchain

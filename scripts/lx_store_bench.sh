@@ -19,7 +19,7 @@ print_usage() {
 
 cat - <<EOF
 
-Load miss benchmark
+Store miss benchmark
 
 Run benchmark and measure percentage of L1 store cache miss
 
@@ -68,13 +68,12 @@ fi
 # --- local variables
 
 MONITOR="${MONITOR_NOTRACE}_${DIM}KB"
-PREFIX="l1_store_bench_${PER_DIM_TAG}"
+PREFIX="lx_store_bench_${PER_DIM_TAG}"
 PREFIX_BENCH="${PREFIX}_`uname -r`"
 NAME_BENCH="${PREFIX_BENCH}_${ID_BENCH}"
 
-STORE_MISS="L1-dcache-store-misses"
+STORE_MISS="LLC-stores"
 STORE_REF="L1-dcache-stores"
-STORE_EVENT="L1-dcache-store"
 
 # TODO guarda il discorso dei ns
 TIME_UNIT="" 
@@ -86,24 +85,18 @@ TAG="<$NAME_BENCH><$DIM>"
 
 # --- header for graphics 
 PREF_PERC="perc"
-PREF_ACC="acc"
 
-TITLE_PERC="Percentage_L1_store_misses"
+TITLE_PERC="L2_store_accesses_over_L1_store_references"
 XLAB_PERC="KB"
-YLAB_PERC="%"
+YLAB_PERC="per_10000"
 PREFIX_BENCH_PERC="${PREF_PERC}_${PREFIX_BENCH}"
-
-TITLE_ACC="Number_of_L1_store_access"
-XLAB_ACC="KB"
-YLAB_ACC="nr_access"
-PREFIX_BENCH_ACC="${PREF_ACC}_${PREFIX_BENCH}"
 
 touch $DATA_FOLDER/$STATS_FILE
 # parameters for "local" graphics construction
 HEADER=`cat $DATA_FOLDER/$STATS_FILE | grep "$TITLE_TAG"`
 # There could be different header in STATS_FILE but there
 # must be only one copy for each header
-if [[ x$HEADER == "x" ]]; then
+if [ x$HEADER == "x" ]; then
 	
 	# header read from local_graphics.sh to build graphic
 
@@ -119,17 +112,6 @@ if [[ x$HEADER == "x" ]]; then
 	echo "#${AVG_COL_TAG}${AVG_COL}" >> $DATA_FOLDER/$STATS_FILE
 	# index of column that contains variance values read by local_graphics.sh
 	echo "#${VAR_COL_TAG}${UNC_COL}" >> $DATA_FOLDER/$STATS_FILE
-
-
-	# header read from local_graphics.sh to build graphic
-
-	# graphic's title
-	echo "#${TITLE_TAG}$TITLE_ACC" >> $DATA_FOLDER/$STATS_FILE
-	echo "#${XLAB_TAG}$XLAB_ACC" >> $DATA_FOLDER/$STATS_FILE
-	echo "#${YLAB_TAG}$YLAB_ACC" >> $DATA_FOLDER/$STATS_FILE
-	echo "#${PREFIX_PLOT_TAG}${PREFIX_BENCH_ACC}" >> $DATA_FOLDER/$STATS_FILE
-	echo "#${AVG_COL_TAG}${AVG_ACC_COL}" >> $DATA_FOLDER/$STATS_FILE
-	echo "#${VAR_COL_TAG}${UNC_ACC_COL}" >> $DATA_FOLDER/$STATS_FILE
 fi
 
 # read if GLOBAL_LIST has already $PREFIX entry
@@ -141,19 +123,13 @@ if [ x$HEADER_GLOBAL_LIST == "x" ]; then
 fi
 HEADER_GLOBAL_LIST=
 
-HEADER_GLOBAL_LIST=`cat $TA_RESULTS_PATH/$GLOBAL_LIST | grep $TITLE_ACC`
-if [ x$HEADER_GLOBAL_LIST == "x" ]; then
-	echo "${PREF_ACC}_${PREFIX}#$TITLE_ACC#$XLAB_ACC#$YLAB_ACC" >> $TA_RESULTS_PATH/$GLOBAL_LIST
-fi
-HEADER_GLOBAL_LIST=
-
 # run benchmark with perf in order to read L1 store
 # cache miss 
 for i in `seq $NUM_REPEAT_PERF`; do
         perf stat -i -a -e $STORE_REF -e $STORE_MISS chrt -f $PRIO_RUN_BENCH run_benchs.sh $BENCH $MONITOR > $PERF_FILE.$i 2>&1
 done
 
-cat $PERF_FILE.* | grep $STORE_EVENT | \
+cat $PERF_FILE.* | grep "#" | \
                 awk '
                         BEGIN { 
                                 i=0; 
@@ -168,7 +144,7 @@ cat $PERF_FILE.* | grep $STORE_EVENT | \
                         
                         i==1 {
 				mean=$1/stores; 
-				print mean*100
+				print mean*10000
                                 i=0; 
                                 next  
                         } 
@@ -200,5 +176,6 @@ mkdir $DATA_FOLDER/$CACHE_MISS_DATA
 mv cache_miss_rate.txt $DATA_FOLDER/$CACHE_MISS_DATA 
 mv $PERF_FILE.* $DATA_FOLDER/$CACHE_MISS_DATA
 
+rm temp_access.txt
 echo "done"
 

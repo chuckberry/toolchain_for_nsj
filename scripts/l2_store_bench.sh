@@ -68,13 +68,13 @@ fi
 # --- local variables
 
 MONITOR="${MONITOR_NOTRACE}_${DIM}KB"
-PREFIX="l1_store_bench_${PER_DIM_TAG}"
+PREFIX="l2_store_bench_${PER_DIM_TAG}"
 PREFIX_BENCH="${PREFIX}_`uname -r`"
 NAME_BENCH="${PREFIX_BENCH}_${ID_BENCH}"
 
-STORE_MISS="L1-dcache-store-misses"
-STORE_REF="L1-dcache-stores"
-STORE_EVENT="L1-dcache-store"
+STORE_MISS="LLC-store-misses"
+STORE_REF="LLC-stores"
+STORE_EVENT="LLC-store"
 
 # TODO guarda il discorso dei ns
 TIME_UNIT="" 
@@ -88,12 +88,12 @@ TAG="<$NAME_BENCH><$DIM>"
 PREF_PERC="perc"
 PREF_ACC="acc"
 
-TITLE_PERC="Percentage_L1_store_misses"
+TITLE_PERC="Percentage_L2_store_misses"
 XLAB_PERC="KB"
 YLAB_PERC="%"
 PREFIX_BENCH_PERC="${PREF_PERC}_${PREFIX_BENCH}"
 
-TITLE_ACC="Number_of_L1_store_access"
+TITLE_ACC="Number_of_L2_store_access"
 XLAB_ACC="KB"
 YLAB_ACC="nr_access"
 PREFIX_BENCH_ACC="${PREF_ACC}_${PREFIX_BENCH}"
@@ -103,7 +103,7 @@ touch $DATA_FOLDER/$STATS_FILE
 HEADER=`cat $DATA_FOLDER/$STATS_FILE | grep "$TITLE_TAG"`
 # There could be different header in STATS_FILE but there
 # must be only one copy for each header
-if [[ x$HEADER == "x" ]]; then
+if [ x$HEADER == "x" ]; then
 	
 	# header read from local_graphics.sh to build graphic
 

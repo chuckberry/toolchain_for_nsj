@@ -207,33 +207,33 @@ for i in `seq $AR_SIZE`; do #size of array
 
 	echo "calculating stats for func ${AR_FUN[$i]}"
 	awk -v "fun=${AR_FUN[$i]}" -v "task_list=${FUNC_TASK_LIST}" -f $PATH_SCRIPT/stat_func.awk $DATA_FOLDER/$DATA_FILE >> $DATA_FOLDER/$SAMPLES_TIME
-	echo "*************** Try $ID_BENCH **********************" >> $DATA_FOLDER/$STATS_FILE_CPU 
-	cat $DATA_FOLDER/$SAMPLES_TIME | grep "#" >> $DATA_FOLDER/$STATS_FILE_CPU	
+#	echo "*************** Try $ID_BENCH **********************" >> $DATA_FOLDER/$STATS_FILE_CPU 
+#	cat $DATA_FOLDER/$SAMPLES_TIME | grep "#" >> $DATA_FOLDER/$STATS_FILE_CPU	
 
 	## calculate how are distributed call of function to trace
 	#NR_FUNC_CALL=`cat $DATA_FOLDER/$SAMPLES_TIME | sed -e '/^#/d' | wc -l`
 	#echo "total call: $NR_FUNC_CALL" >> $DATA_FOLDER/$CPU_CALL_FILE
 
-	SAMPLES=`cat $DATA_FOLDER/$SAMPLES_TIME`
-	for k in 0 1 2 3; do
-		SAMPLE_TIME_CPU="${SAMPLES_TIME_PREFIX_CPU}_$k.txt"
-		PERC_FILE_CPU="${PERC_FILE_PREFIX_CPU}_$k.txt"
-		IMG_SAMPLE_TIME_CPU="${IMG_SAMPLES_TIME_PREFIX_CPU}_$k.png"
-		IMG_PERC_FILE_CPU="${IMG_PERC_FILE_PREFIX_CPU}_$k.png"
-
-		echo "$SAMPLES" | grep -v "#" | grep "$k)" | sed -e 's/'$k')//g' >> $DATA_FOLDER/$SAMPLE_TIME_CPU
-		AVG_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_TIME_CPU" -n 1 -a`
-		VAR_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_TIME_CPU" -n 1 -u`
-		COUNT=`echo "$SAMPLES" | grep "<c$k>call" | awk '{print $NF}'`
-
-		generate_histogram.sh $DATA_FOLDER/$SAMPLE_TIME_CPU "us" > hist
-		generate_percentili.sh hist $COUNT > $DATA_FOLDER/$PERC_FILE_CPU
-
-		traceplotgif.sh "$DATA_FOLDER/$SAMPLE_TIME_CPU" "$PNG_FOLDER/$IMG_SAMPLE_TIME_CPU" \
-					"count = $COUNT cpu: $k ${AR_FUN[$i]}_`uname -r`"  "Time (us)" "nr_of_call"
-		traceplotgif.sh "$DATA_FOLDER/$PERC_FILE_CPU" "$PNG_FOLDER/$IMG_PERC_FILE_CPU" \
-					"fdr of cpu: $k (us) Avg = $AVG_FUN Var = $VAR_FUN ${AR_FUN[$i]}_`uname -r`"  "Percentage" "Time (ns)"
-	done
+#	SAMPLES=`cat $DATA_FOLDER/$SAMPLES_TIME`
+#	for k in 0 1 2 3; do
+#		SAMPLE_TIME_CPU="${SAMPLES_TIME_PREFIX_CPU}_$k.txt"
+#		PERC_FILE_CPU="${PERC_FILE_PREFIX_CPU}_$k.txt"
+#		IMG_SAMPLE_TIME_CPU="${IMG_SAMPLES_TIME_PREFIX_CPU}_$k.png"
+#		IMG_PERC_FILE_CPU="${IMG_PERC_FILE_PREFIX_CPU}_$k.png"
+#
+#		echo "$SAMPLES" | grep -v "#" | grep "$k)" | sed -e 's/'$k')//g' >> $DATA_FOLDER/$SAMPLE_TIME_CPU
+#		AVG_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_TIME_CPU" -n 1 -a`
+#		VAR_FUN=`calc_stat.sh -f "$DATA_FOLDER/$SAMPLE_TIME_CPU" -n 1 -u`
+#		COUNT=`echo "$SAMPLES" | grep "<c$k>call" | awk '{print $NF}'`
+#
+#		generate_histogram.sh $DATA_FOLDER/$SAMPLE_TIME_CPU "us" > hist
+#		generate_percentili.sh hist $COUNT > $DATA_FOLDER/$PERC_FILE_CPU
+#
+#		traceplotgif.sh "$DATA_FOLDER/$SAMPLE_TIME_CPU" "$PNG_FOLDER/$IMG_SAMPLE_TIME_CPU" \
+#					"count = $COUNT cpu: $k ${AR_FUN[$i]}_`uname -r`"  "Time (us)" "nr_of_call"
+#		traceplotgif.sh "$DATA_FOLDER/$PERC_FILE_CPU" "$PNG_FOLDER/$IMG_PERC_FILE_CPU" \
+#					"fdr of cpu: $k (us) Avg = $AVG_FUN Var = $VAR_FUN ${AR_FUN[$i]}_`uname -r`"  "Percentage" "Time (ns)"
+#	done
 
 	# put STATS value in STATS_FILE tagged with <DIM> 
 	# STATS will have this format:
@@ -247,7 +247,7 @@ for i in `seq $AR_SIZE`; do #size of array
 	# -> count = number of call of ${AR_FUN[$i]}
 
 	NR_FUNC_CALL=`cat "$DATA_FOLDER/$SAMPLES_TIME"  | grep "<EOF>call" | awk '{print $NF}'`
-	ALL_LATENCIES=`cat "$DATA_FOLDER/$SAMPLES_TIME" | grep "<EOF>time" | awk '{print $NF}'`
+#	ALL_LATENCIES=`cat "$DATA_FOLDER/$SAMPLES_TIME" | grep "<EOF>time" | awk '{print $NF}'`
 
 	STATS="`calc_stat.sh -f "$DATA_FOLDER/$SAMPLES_TIME" -n 2 -l` count = $NR_FUNC_CALL"
 	echo "<$DIM>$STATS" >> $DATA_FOLDER/$STATS_FILE
@@ -256,29 +256,30 @@ for i in `seq $AR_SIZE`; do #size of array
 	# compute an uncertainty
 	VAR_FUN="`calc_stat.sh -f "$DATA_FOLDER/$SAMPLES_TIME" -n 2 -u`"
 
-	FILTER_SAMPLES_TIME="temp"
-	cat $DATA_FOLDER/$SAMPLES_TIME | grep -v "#" | awk '{print $NF}' > $FILTER_SAMPLES_TIME
-
-	generate_histogram.sh $FILTER_SAMPLES_TIME "us" > hist 
-	generate_percentili.sh hist $NR_FUNC_CALL > $DATA_FOLDER/$PERC_FILE
-
-	traceplotgif.sh "$FILTER_SAMPLES_TIME" "$PNG_FOLDER/$IMG_SAMPLES_TIME" \
-			"count = $NR_FUNC_CALL time = $ALL_LATENCIES ${TITLE_AVG}_`uname -r`"  "Time (us)" "nr_of_call"
-	traceplotgif.sh "$DATA_FOLDER/$PERC_FILE" "$PNG_FOLDER/$IMG_PERC_FILE" \
-			"fdr: (us) Avg = $AVG_FUN Var = $VAR_FUN ${AR_FUN[$i]}_`uname -r`" "Percentage" "Time (ns)" 
-
-	gzip $DATA_FOLDER/$SAMPLES_TIME
-	gzip $DATA_FOLDER/$PERC_FILE
-	for k in 0 1 2 3; do
-		SAMPLE_TIME_CPU="${SAMPLES_TIME_PREFIX_CPU}_$k.txt"
-		PERC_FILE_CPU="${PERC_FILE_PREFIX_CPU}_$k.txt"
-		gzip $DATA_FOLDER/$SAMPLE_TIME_CPU
-		gzip $DATA_FOLDER/$PERC_FILE_CPU
-	done
+#	FILTER_SAMPLES_TIME="temp"
+#	cat $DATA_FOLDER/$SAMPLES_TIME | grep -v "#" | awk '{print $NF}' > $FILTER_SAMPLES_TIME
+#
+#	generate_histogram.sh $FILTER_SAMPLES_TIME "us" > hist 
+#	generate_percentili.sh hist $NR_FUNC_CALL > $DATA_FOLDER/$PERC_FILE
+#
+#	traceplotgif.sh "$FILTER_SAMPLES_TIME" "$PNG_FOLDER/$IMG_SAMPLES_TIME" \
+#			"count = $NR_FUNC_CALL time = $ALL_LATENCIES ${TITLE_AVG}_`uname -r`"  "Time (us)" "nr_of_call"
+#	traceplotgif.sh "$DATA_FOLDER/$PERC_FILE" "$PNG_FOLDER/$IMG_PERC_FILE" \
+#			"fdr: (us) Avg = $AVG_FUN Var = $VAR_FUN ${AR_FUN[$i]}_`uname -r`" "Percentage" "Time (ns)" 
+#
+#	gzip $DATA_FOLDER/$SAMPLES_TIME
+	rm $DATA_FOLDER/$SAMPLES_TIME
+#	gzip $DATA_FOLDER/$PERC_FILE
+#	for k in 0 1 2 3; do
+#		SAMPLE_TIME_CPU="${SAMPLES_TIME_PREFIX_CPU}_$k.txt"
+#		PERC_FILE_CPU="${PERC_FILE_PREFIX_CPU}_$k.txt"
+#		gzip $DATA_FOLDER/$SAMPLE_TIME_CPU
+#		gzip $DATA_FOLDER/$PERC_FILE_CPU
+#	done
 done
 
 # compress data file
 gzip $DATA_FOLDER/$DATA_FILE
-rm hist
-rm $FILTER_SAMPLES_TIME
+#rm hist
+#rm $FILTER_SAMPLES_TIME
 
